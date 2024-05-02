@@ -197,13 +197,11 @@ Write-Host "Checking Microsoft Graph Module..." -ForegroundColor Yellow
 Write-Host "Connecting to Microsoft Graph PowerShell..." -ForegroundColor Magenta
 
         if ($SavedCreds){
-            Connect-MgGraph -Credential $UserCreds -ErrorAction SilentlyContinue
+            Connect-MgGraph -Credential $UserCreds -ErrorAction SilentlyContinue -NoWelcome
         }else{
-            Connect-MgGraph -ErrorAction SilentlyContinue
+            Connect-MgGraph -ErrorAction SilentlyContinue -NoWelcome
         }
-        {
         $MgContext= Get-mgContext
-        }
 Write-Host "User $($MgContext.Account) has connected to $($MgContext.TenantId) Microsoft Graph API successfully." -ForegroundColor Green
 ''
 ''
@@ -220,15 +218,15 @@ Write-Host "Checking ImportExcel Module..." -ForegroundColor Yellow
         ''
         ''
     } else {
-        Write-Host "ImportExcel Module is not installed." -ForegroundColor Red -BackgroundColor Black
+        Write-Host "Excel Module is not installed." -ForegroundColor Red -BackgroundColor Black
         ''
-        Write-Host "Installing ImportExcel Module....." -ForegroundColor Yellow
+        Write-Host "Installing Excel Module....." -ForegroundColor Yellow
         Install-Module ImportExcel -Force
                                 
         if (Get-Module -ListAvailable -Name ImportExcel) {                                
-        Write-Host "ImportExcel Module has installed." -ForegroundColor Green -BackgroundColor Black
+        Write-Host "Excel Module has installed." -ForegroundColor Green -BackgroundColor Black
         Import-Module ImportExcel
-        Write-Host "ImportExcel Module has imported." -ForegroundColor Green -BackgroundColor Black
+        Write-Host "Excel Module has imported." -ForegroundColor Green -BackgroundColor Black
         ''
         ''
         } else {
