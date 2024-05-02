@@ -202,7 +202,7 @@ Write-Host "Connecting to Microsoft Graph PowerShell..." -ForegroundColor Magent
             Connect-MgGraph -ErrorAction SilentlyContinue -NoWelcome
         }
         $MgContext= Get-mgContext
-Write-Host "User $($MgContext.Account) has connected to $($MgContext.TenantId) Microsoft Graph API successfully." -ForegroundColor Green
+Write-Host "User $($MgContext.Account) has connected to TenantId $($MgContext.TenantId) Microsoft Graph API successfully." -ForegroundColor Green
 ''
 ''
 
