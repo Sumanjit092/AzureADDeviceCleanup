@@ -17,7 +17,7 @@ Extremely Important Notes:
     before deleting a stale device.
 
 -   For more information, kindly visit the link:
-    https://docs.microsoft.com/en-us/azure/active-directory/devices/manage-stale-devices
+    https://learn.microsoft.com/en-us/entra/identity/devices/manage-stale-devices
 =========================================================================================================
 
  
@@ -31,7 +31,8 @@ Extremely Important Notes:
     Mohammad Zmaili
 
 .VERSION
-    1.1
+    1.1 (AzureAd PowerShell Module)
+    1.2 (AzureAd PowerShell Module Retired, switching to Microsoft Graph API)
   
 .UPDATED BY
     SUMANJIT PAN
@@ -156,51 +157,54 @@ $statuscode = (Invoke-WebRequest -Uri https://adminwebservice.microsoftonline.co
 if ($statuscode -ne 200){
 ''
 ''
-Write-Host "Operation aborted. Unable to connect to Azure AD, please check your internet connection." -ForegroundColor red -BackgroundColor Black
+Write-Host "Operation aborted. Unable to connect to Microsoft Graph, please check your internet connection." -ForegroundColor red -BackgroundColor Black
 exit
 }
 }
 
-Function CheckAzureAd{
+Function CheckMSGraph{
 ''
-Write-Host "Checking AzureAd Module..." -ForegroundColor Yellow
+Write-Host "Checking Microsoft Graph Module..." -ForegroundColor Yellow
                             
-    if (Get-Module -ListAvailable | where {$_.Name -like "*AzureAD*"}) 
+    if (Get-Module -ListAvailable | where {$_.Name -like "Microsoft.Graph"}) 
     {
-    Write-Host "AzureAD Module has installed." -ForegroundColor Green
-    Import-Module AzureAD
-    Write-Host "AzureAD Module has imported." -ForegroundColor Cyan
+    Write-Host "Microsoft Graph Module has installed." -ForegroundColor Green
+    Import-Module -Name "Microsoft.Graph"
+    Write-Host "Microsoft Graph Module has imported." -ForegroundColor Cyan
     ''
     ''
     } else 
     {
-    Write-Host "AzureAD Module is not installed." -ForegroundColor Red
+    Write-Host "Microsoft Graph Module is not installed." -ForegroundColor Red
     ''
-    Write-Host "Installing AzureAD Module....." -ForegroundColor Yellow
-    Install-Module AzureAD -Force
+    Write-Host "Installing Microsoft Graph Module....." -ForegroundColor Yellow
+    Install-Module -Name "Microsoft.Graph" -Force
                                 
-    if (Get-Module -ListAvailable | where {$_.Name -like "*AzureAD*"}) {                                
-    Write-Host "AzureAD Module has installed." -ForegroundColor Green
-    Import-Module AzureAD
-    Write-Host "AzureAD Module has imported." -ForegroundColor Cyan
+    if (Get-Module -ListAvailable | where {$_.Name -like "Microsoft.Graph"}) {                                
+    Write-Host "Microsoft Graph Module has installed." -ForegroundColor Green
+    Import-Module -Name "Microsoft.Graph"
+    Write-Host "Microsoft Graph Module has imported." -ForegroundColor Cyan
     ''
     ''
     } else
     {
     ''
     ''
-    Write-Host "Operation aborted. AzureAD Module was not installed." -ForegroundColor Red
+    Write-Host "Operation aborted. Microsoft Graph Module was not installed." -ForegroundColor Red
     Exit}
     }
 
-Write-Host "Connecting to AzureAD PowerShell..." -ForegroundColor Magenta
+Write-Host "Connecting to Microsoft Graph PowerShell..." -ForegroundColor Magenta
 
         if ($SavedCreds){
-            $AzureAd = Connect-AzureAD -Credential $UserCreds -ErrorAction SilentlyContinue
+            Connect-MgGraph -Credential $UserCreds -ErrorAction SilentlyContinue
         }else{
-            $AzureAd = Connect-AzureAD -ErrorAction SilentlyContinue
+            Connect-MgGraph -ErrorAction SilentlyContinue
         }
-Write-Host "User $($AzureAd.Account) has connected to $($AzureAd.TenantDomain) AzureCloud tenant successfully." -ForegroundColor Green
+        {
+        $MgContext= Get-mgContext
+        }
+Write-Host "User $($MgContext.Account) has connected to $($MgContext.TenantId) Microsoft Graph API successfully." -ForegroundColor Green
 ''
 ''
 
@@ -263,11 +267,11 @@ Write-Host "You should determine whether your cleanup policy aligns with the act
 Write-Host "before deleting a stale device." -ForegroundColor yellow 
 ''
 Write-Host "For more information, kindly visit the link:" -ForegroundColor yellow 
-Write-Host "https://docs.microsoft.com/en-us/azure/active-directory/devices/manage-stale-devices" -ForegroundColor yellow 
+Write-Host "https://learn.microsoft.com/en-us/entra/identity/devices/manage-stale-devices" -ForegroundColor yellow 
 
 "===================================================================================================="
 ''
-CheckAzureAd
+CheckMSGraph
 
 CheckImportExcel
 
@@ -286,23 +290,23 @@ $WorkSheetName = "AADDevicesOlderthan-" + $LastLogin
 if ($Verify){
     Write-Host "Verifing stale devices older than"$Global:LastLogon -ForegroundColor Yellow
     $FileReport = "AzureADDevicesList_" + $Date + $Time + ".xlsx"
-    $DeviceReport = Get-AzureADDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null)} | Select-Object -Property DisplayName, AccountEnabled, ObjectId, DeviceOSType, DeviceOSVersion, DeviceTrustType, ApproximateLastLogonTimestamp
+    $DeviceReport = Get-MgDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null)} | Select-Object -Property DisplayName, AccountEnabled, DeviceId, OperatingSystem, OperatingSystemVersion, TrustType, ApproximateLastSignInDateTime
     $DeviceReport | Export-Excel -workSheetName $WorkSheetName -path $FileReport -ClearSheet -TableName "AADDevicesTable" -AutoSize
     $Global:AffectedDevices = $DeviceReport.Count
     Write-Host "Verification Completed." -ForegroundColor Green -BackgroundColor Black
 }elseif ($VerifyDisabledDevices){
     Write-Host "Verifing stale disabled devices older than"$Global:LastLogon -ForegroundColor Yellow
     $FileReport = "DisabledDevices_" + $Date + $Time + ".xlsx"  
-    $DeviceReport = Get-AzureADDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null) -and ($_.AccountEnabled -eq $false)} | Select-Object -Property DisplayName, AccountEnabled, ObjectId, DeviceOSType, DeviceOSVersion, DeviceTrustType, ApproximateLastLogonTimestamp
+    $DeviceReport = Get-MgDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null) -and ($_.AccountEnabled -eq $false)} | Select-Object -Property DisplayName, AccountEnabled, DeviceId, OperatingSystem, OperatingSystemVersion, TrustType, ApproximateLastSignInDateTime
     $DeviceReport | Export-Excel -workSheetName $WorkSheetName -path $FileReport -ClearSheet -TableName "AADDevicesTable" -AutoSize
     $Global:AffectedDevices = $DeviceReport.Count
     Write-Host "Task Completed Successfully." -ForegroundColor Green -BackgroundColor Black
 }elseif ($DisableDevices){
     Write-Host "Disabling stale devices older than"$Global:LastLogon -ForegroundColor Yellow
     $FileReport = "DisabledDevices_" + $Date + $Time + ".xlsx"
-    $DeviceReport = Get-AzureADDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null) -and ($_.AccountEnabled -eq $true)} | Select-Object -Property DisplayName, AccountEnabled, ObjectId, DeviceOSType, DeviceOSVersion, DeviceTrustType, ApproximateLastLogonTimestamp
+    $DeviceReport = Get-AzureADDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null) -and ($_.AccountEnabled -eq $true)} | Select-Object -Property DisplayName, AccountEnabled, DeviceId, OperatingSystem, OperatingSystemVersion, TrustType, ApproximateLastSignInDateTime
     foreach ($Device in $DeviceReport) {
-    Set-AzureADDevice -ObjectId $Device.ObjectId -AccountEnabled $false
+    Update-MgDevice -DeviceId $Device.Id -BodyParameter @{accountEnabled = $false}
     }
     $DeviceReport | Export-Excel -workSheetName $WorkSheetName -path $FileReport -ClearSheet -TableName "AADDevicesTable" -AutoSize
     $Global:AffectedDevices = $DeviceReport.Count
@@ -310,9 +314,9 @@ if ($Verify){
 }elseif ($CleanDisabledDevices){
     Write-Host "Cleaning STALE DISABLED devices older than"$Global:LastLogon -ForegroundColor Yellow
     $FileReport = "CleanedDevices_" + $Date + $Time + ".xlsx"  
-    $DeviceReport = Get-AzureADDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null) -and ($_.AccountEnabled -eq $false)} | Select-Object -Property DisplayName, AccountEnabled, ObjectId, DeviceOSType, DeviceOSVersion, DeviceTrustType, ApproximateLastLogonTimestamp
+    $DeviceReport = Get-MgDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null) -and ($_.AccountEnabled -eq $false)} | Select-Object -Property DisplayName, AccountEnabled, DeviceId, OperatingSystem, OperatingSystemVersion, TrustType, ApproximateLastSignInDateTime
     foreach ($Device in $DeviceReport) {
-    Remove-AzureADDevice -ObjectId $Device.ObjectId
+    Remove-MgDevice -DeviceId $Device.Id
     }
     $DeviceReport | Export-Excel -workSheetName $WorkSheetName -path $FileReport -ClearSheet -TableName "AADDevicesTable" -AutoSize
     $Global:AffectedDevices = $DeviceReport.Count
@@ -321,9 +325,9 @@ if ($Verify){
 }elseif ($CleanDevices){
     Write-Host "Cleaning STALE devices older than"$Global:LastLogon -ForegroundColor Yellow 
     $FileReport = "CleanedDevices_" + $Date + $Time + ".xlsx"
-    $DeviceReport = Get-AzureADDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null)} | Select-Object -Property DisplayName, AccountEnabled, ObjectId, DeviceOSType, DeviceOSVersion, DeviceTrustType, ApproximateLastLogonTimestamp
+    $DeviceReport = Get-MgDevice -All:$true | Where {($_.ApproximateLastLogonTimeStamp -le $Global:LastLogon) -and ($_.ApproximateLastLogonTimeStamp -ne $Null)} | Select-Object -Property DisplayName, AccountEnabled, DeviceId, OperatingSystem, OperatingSystemVersion, TrustType, ApproximateLastSignInDateTime
     foreach ($Device in $DeviceReport) {
-    Remove-AzureADDevice -ObjectId $Device.ObjectId
+    Remove-MgDevice -DeviceId $Device.Id
     }
     $DeviceReport | Export-Excel -workSheetName $WorkSheetName -path $FileReport -ClearSheet -TableName "AADDevicesTable" -AutoSize
     $Global:AffectedDevices = $DeviceReport.Count
