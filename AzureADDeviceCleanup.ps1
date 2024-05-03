@@ -210,29 +210,29 @@ Write-Host "User $($MgContext.Account) has connected to TenantId $($MgContext.Te
 
 
 Function CheckImportExcel{
-Write-Host "Checking ImportExcel Module..." -ForegroundColor Yellow
+Write-Host "Checking Excel Module..." -ForegroundColor Yellow
                             
-    if (Get-Module -ListAvailable -Name ImportExcel) {
-        Import-Module ImportExcel
-        Write-Host "ImportExcel Module has imported." -ForegroundColor Green -BackgroundColor Black
+    if (Get-Module -ListAvailable -Name "ImportExcel") {
+        Import-Module -Name "ImportExcel"
+        Write-Host "Excel Module has imported." -ForegroundColor Green -BackgroundColor Black
         ''
         ''
     } else {
         Write-Host "Excel Module is not installed." -ForegroundColor Red -BackgroundColor Black
         ''
         Write-Host "Installing Excel Module....." -ForegroundColor Yellow
-        Install-Module ImportExcel -Force
+        Install-Module -Name "ImportExcel" -Force
                                 
-        if (Get-Module -ListAvailable -Name ImportExcel) {                                
+        if (Get-Module -ListAvailable -Name "ImportExcel") {                                
         Write-Host "Excel Module has installed." -ForegroundColor Green -BackgroundColor Black
-        Import-Module ImportExcel
+        Import-Module -Name "ImportExcel"
         Write-Host "Excel Module has imported." -ForegroundColor Green -BackgroundColor Black
         ''
         ''
         } else {
         ''
         ''
-        Write-Host "Operation aborted. ImportExcel was not installed." -ForegroundColor Red -BackgroundColor Black
+        Write-Host "Operation aborted. Excel was not installed." -ForegroundColor Red -BackgroundColor Black
         exit
         }
     }
