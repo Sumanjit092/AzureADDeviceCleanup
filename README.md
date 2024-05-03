@@ -60,7 +60,7 @@ Using AzureADDeviceCleanup PowerShell script, you can automate Azure AD devices 
 ![PS output](https://github.com/Sumanjit092/AzureADDeviceCleanup/blob/master/PS2.png)
 
 - Excel output: 
-![CSVReport](https://github.com/mzmaili/AzureADDeviceCleanup/blob/master/Untitled.png)
+![CSVReport](https://github.com/Sumanjit092/AzureADDeviceCleanup/blob/master/Outfile.png)
 
 
 ```azurepowershell
