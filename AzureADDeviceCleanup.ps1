@@ -304,7 +304,7 @@ if ($Verify){
     $FileReport = "DisabledDevices_" + $Date + $Time + ".xlsx"
     $DeviceReport = Get-AzureADDevice -All:$true | Where {($_.ApproximateLastSignInDateTime -le $Global:LastLogon) -and ($_.ApproximateLastSignInDateTime -ne $Null) -and ($_.AccountEnabled -eq $true)} | Select-Object -Property DisplayName, AccountEnabled, DeviceId, OperatingSystem, OperatingSystemVersion, TrustType, ApproximateLastSignInDateTime
     foreach ($Device in $DeviceReport) {
-    Update-MgDevice -DeviceId $Device.Id -BodyParameter @{accountEnabled = $false}
+    Update-MgDevice -DeviceId $Device.Id -AccountEnabled:$false
     }
     $DeviceReport | Export-Excel -workSheetName $WorkSheetName -path $FileReport -ClearSheet -TableName "AADDevicesTable" -AutoSize
     $Global:AffectedDevices = $DeviceReport.Count
